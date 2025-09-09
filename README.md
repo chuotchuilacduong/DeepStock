@@ -29,10 +29,11 @@ Collects news, financial statements, and historical price data for each company.
 
 Combines all information into a single dataset and uploads it to the Hugging Face Hub.
 
-2. Prompt Engineering
+### 2. Prompt Engineering
+
 The raw data is converted into structured, conversational prompts to teach the model how to answer analytical questions.
 
-Example Prompt Structure:
+**Example Prompt Structure:**
 
 <|im_start|>system
 A conversation between User and Assistant.
@@ -43,15 +44,17 @@ A conversation between User and Assistant.
 <|im_start|>assistant
 {Analytical answer}
 <|im_end|>
-3. Model Training
-Loads the base model deepseek-coder-6.7b-instruct.
 
-Uses the SFTTrainer (Supervised Fine-tuning Trainer) from the trl library to train the model on the prompt-formatted dataset.
 
-Training parameters like learning rate, batch size, and the number of epochs are configured to optimize performance.
+### 3. Model Training
 
-4. Inference
-After training, the model can be used to answer new, unseen questions.
+* Loads the base model `deepseek-coder-6.7b-instruct`.
+* Uses the `SFTTrainer` (Supervised Fine-tuning Trainer) from the `trl` library to train the model on the prompt-formatted dataset.
+* Training parameters like learning rate, batch size, and the number of epochs are configured to optimize performance.
+
+### 4. Inference
+
+* After training, the model can be used to answer new, unseen questions.
 
 Example Model Output:
 
