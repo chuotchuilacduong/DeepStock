@@ -1,4 +1,3 @@
-Of course! Here is the English version of the README, maintaining the improved structure and professional tone.
 
 DeepStock: An LLM for Stock Analysis
 DeepStock is a comprehensive project for building and training a Large Language Model (LLM) specialized for stock analysis tasks. The pipeline covers everything from collecting and processing a large-scale dataset, creating specialized prompts, fine-tuning a pre-trained LLM, and finally, generating sample analyses.
