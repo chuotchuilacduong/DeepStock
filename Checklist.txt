@@ -35,11 +35,3 @@
 [ ] Display the results or any error messages on the UI.
 
 ## Phase 3: Deployment
-[ ] Option A: Deploy with Hugging Face Spaces (Recommended Path)
-[ ] Create a Space.
-
-[ ] Upload Application Code.
-
-[ ] Configure the Space.
-
-[ ] Test.

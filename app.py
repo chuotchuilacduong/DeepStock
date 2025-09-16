@@ -1,4 +1,4 @@
-
+# app.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,13 +7,17 @@ import torch
 import re
 from dotenv import load_dotenv 
 import os 
+
+# Tải các biến môi trường từ file .env
 load_dotenv()
+
 app = FastAPI(
     title="Stock Chatbot API",
-    description="API for chatbot analyzes stock using model SmolLM2-1.7B-Instruct",
+    description="API for a chatbot that analyzes stocks using the SmolLM2-1.7B-Instruct model",
     version="1.0.0"
 )
 
+# Cấu hình CORS để cho phép truy cập từ mọi nguồn
 origins = ["*"] 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Pydantic Models for Request/Response ---
 class ChatRequest(BaseModel):
     message: str
 
@@ -30,48 +35,71 @@ class ChatResponse(BaseModel):
     answer: str
     thinking: str | None = None 
 
-# [Checklist] Load your model directly from the Hugging Face Hub
-
+# --- Model Configuration ---
 MODEL_ID = "chuotchuilacduong/SmolLM2-1.7B-Instruct-Finetuned-Stock"
 SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant "
-    "first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning "
-    "process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "
-    "<think> reasoning process here </think><answer> answer here </answer>"
+    "You are an AI assistant designed to function as an expert reasoner. Your response must follow a strict structure composed of two parts: a thinking process and a final answer."
+
+    "### Part 1: The <think> Block"
+    "Inside the <think></think> tags, you will perform your internal, step-by-step reasoning. This is your private scratchpad. Break down the user's question, gather relevant information, evaluate different aspects, and formulate a plan for the final answer. This section is for your internal use only and will not be shown to the user."
+
+    "### Part 2: The <answer> Block"
+    "Inside the <answer></answer> tags, you will provide the complete, polished, and user-facing answer. This response must be comprehensive and self-contained, directly addressing the user's query by synthesizing the conclusions from your thinking process."
+
+    "### Crucial Rules to Follow:"
+    "1. **Standalone Answer:** The content within <answer> must make complete sense on its own, without needing the <think> block for context."
+    "2. **No Self-Reference:** You MUST NOT use phrases that refer to your own reasoning process. For example, AVOID: 'Based on the points above,', 'As I reasoned in my thinking process,', 'In conclusion from my analysis,', etc."
+    "3. **Strict Format:** Your entire output must only contain the <think>...</think> block immediately followed by the <answer>...</answer> block, with no other text before, between, or after these blocks."
 )
 
-# Biến toàn cục để giữ model
+# Biến toàn cục để giữ model và tokenizer sau khi load
 chatbot_pipeline = None
 tokenizer = None
 
-def parse_model_output(model_text: str):
-   
-    think_content = re.search(r"<think>(.*?)</think>", model_text, re.DOTALL)
-    answer_content = re.search(r"<answer>(.*?)</answer>", model_text, re.DOTALL)
+# --- Hàm Parse tối ưu ---
+def parse_response(model_text: str) -> dict:
+    """
+    Parse model output bằng cách tìm ranh giới giữa khối think và answer.
+    Ưu tiên xử lý trường hợp dính liền "</think><answer>".
+    """
+    # 1. Ưu tiên cao nhất: Tìm điểm nối dính liền "</think><answer>"
+    separator = "</think><answer>"
+    if separator in model_text:
+        parts = model_text.split(separator, 1)
+        think_content = parts[0].replace("<think>", "").strip()
+        answer_content = parts[1].replace("</answer>", "").strip()
+        return {"thinking": think_content, "answer": answer_content}
 
-    thinking = think_content.group(1).strip() if think_content else "No thinking process found."
-    answer = answer_content.group(1).strip() if answer_content else model_text.strip()
+    # 2. Ưu tiên thứ hai: Nếu không dính liền, tìm thẻ <answer> làm ranh giới
+    separator = "<answer>"
+    if separator in model_text:
+        parts = model_text.split(separator, 1)
+        think_content = parts[0].replace("<think>", "").replace("</think>", "").strip()
+        answer_content = parts[1].replace("</answer>", "").strip()
+        if not think_content:
+            think_content = "No thinking process found."
+        return {"thinking": think_content, "answer": answer_content}
+        
+    # 3. Trường hợp cuối: Không tìm thấy ranh giới, toàn bộ là câu trả lời
+    return {"thinking": "No boundary found.", "answer": model_text.strip()}
 
-    if answer_content:
-        answer = answer_content.group(1).strip()
-    else:
-        answer = model_text.strip()
-
-    return {"thinking": thinking, "answer": answer}
-
+# --- Sự kiện Startup: Load Model ---
 @app.on_event("startup")
 def load_model():
+    """
+    Load model và tokenizer khi ứng dụng khởi động.
+    """
     global chatbot_pipeline, tokenizer
     hf_token = os.getenv("HUGGING_FACE_HUB_TOKEN")
     if not hf_token:
-        print("Hugging Face token not found. Please set HUGGING_FACE_HUB_TOKEN in your .env file.")
+        print("HUGGING_FACE_HUB_TOKEN not found in .env file. Please set it.")
         return
     try:
         print(f"Loading model from Hub: {MODEL_ID}...")
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID, 
             torch_dtype=torch.bfloat16, 
-            device_map="auto" # Tự động sử dụng GPU nếu có
+            device_map="auto"  # Tự động sử dụng GPU nếu có
         )
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
         
@@ -86,6 +114,7 @@ def load_model():
         print(f"Error loading model: {e}")
         chatbot_pipeline = None 
 
+# --- API Endpoints ---
 @app.get("/")
 def read_root():
     return {"status": "Stock Chatbot API is running."}
@@ -93,34 +122,39 @@ def read_root():
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest):
     if not chatbot_pipeline or not tokenizer:
-        raise HTTPException(status_code=500, detail="Model is not available.")
+        raise HTTPException(status_code=503, detail="Model is not available or still loading.")
 
     try:
-        
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": request.message.strip()},
         ]
 
-        # 2. Sử dụng tokenizer để tạo prompt cuối cùng
+        # Tạo prompt hoàn chỉnh bằng template của tokenizer
         final_prompt = tokenizer.apply_chat_template(
             messages, 
             tokenize=False, 
             add_generation_prompt=True
         )
 
+        # Chạy pipeline
         results = chatbot_pipeline(
             final_prompt, 
             max_new_tokens=1024, 
             num_return_sequences=1,
-            # Thêm các tham số khác nếu cần, ví dụ: temperature, top_p...
+            eos_token_id=tokenizer.eos_token_id,
+            do_sample=True,
+            top_p=0.9,
+            temperature=0.6,
         )
         
-        
+        # Trích xuất phần văn bản do model tạo ra một cách an toàn
         full_generated_text = results[0]['generated_text']
-        model_output_only = full_generated_text.replace(final_prompt, "").strip()
+        # Tối ưu: Dùng slicing thay vì replace để tránh lỗi
+        model_output_only = full_generated_text[len(final_prompt):].strip()
 
-        parsed_output = parse_model_output(model_output_only)
+        # Parse output
+        parsed_output = parse_response(model_output_only)
         return ChatResponse(
             answer=parsed_output["answer"], 
             thinking=parsed_output["thinking"]

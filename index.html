@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Chatbot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div class="chat-header">
+            <h1>📈 Deep Stock</h1>
+            <div id="thinking-toggle-container">
+                <label class="switch">
+                    <input type="checkbox" id="thinking-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <label for="thinking-toggle">Show thinking</label>
+            </div>
+        </div>
+
+        <div id="chat-box">
+            </div>
+
+        <div id="loader" class="hidden"></div>
+
+        <div id="prompt-suggestions">
+            </div>
+
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Ask about a stock ticker...">
+            <button id="send-btn">➤</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
