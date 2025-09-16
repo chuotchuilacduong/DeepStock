@@ -1,0 +1,226 @@
+/* --- Google Font --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* --- CSS Variables for easy theme management --- */
+:root {
+    --background-color: #1a1a2e;
+    --container-bg: #16213e;
+    --header-bg: #0f3460;
+    --user-message-bg: #e94560;
+    --bot-message-bg: #2a3b5a;
+    --thinking-message-color: #a7a7a7;
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --border-color: #3a4b6f;
+    --input-bg: #2a3b5a;
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+#chat-container {
+    width: 90%;
+    max-width: 700px;
+    height: 90vh;
+    background-color: var(--container-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+}
+
+/* --- Header Section --- */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+#thinking-toggle-container {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+#thinking-toggle-container label {
+    margin-left: 8px;
+}
+
+/* --- Chat Box --- */
+#chat-box {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#chat-box::-webkit-scrollbar { width: 6px; }
+#chat-box::-webkit-scrollbar-track { background: transparent; }
+#chat-box::-webkit-scrollbar-thumb { background-color: #3a4b6f; border-radius: 3px; }
+
+/* --- Message Styling --- */
+.message-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #3a4b6f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.message {
+    padding: 12px 18px;
+    border-radius: 18px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* User Message */
+.user-message-wrapper { align-self: flex-end; flex-direction: row-reverse; }
+.user-message .message { background-color: var(--user-message-bg); color: white; border-bottom-right-radius: 4px; }
+
+/* Bot Message */
+.bot-message-wrapper { align-self: flex-start; }
+.bot-message .message { background-color: var(--bot-message-bg); color: var(--text-secondary); border-bottom-left-radius: 4px; }
+
+/* Thinking Message */
+.thinking-message .message {
+    font-style: italic;
+    color: var(--thinking-message-color);
+    background-color: transparent;
+    border: 1px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* CẬP NHẬT: Kiểu dáng cho khu vực gợi ý câu hỏi */
+#prompt-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 15px 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.suggestion-btn {
+    background-color: var(--bot-message-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestion-btn:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* --- Input Area --- */
+#input-container {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    /* CẬP NHẬT: Bỏ border-top vì đã có border-bottom của prompt-suggestions */
+}
+
+#user-input {
+    flex-grow: 1;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 16px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+#user-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--user-message-bg);
+}
+
+#send-btn {
+    background-color: var(--user-message-bg);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+#send-btn:hover { background-color: #d43a55; }
+
+/* --- Loader/Spinner --- */
+#loader {
+    border: 3px solid #3a4b6f;
+    border-top: 3px solid var(--user-message-bg);
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    animation: spin 1s linear infinite;
+    align-self: center;
+    margin: 10px;
+}
+.hidden { display: none; }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- Toggle Switch --- */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a4b6f; transition: .4s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--user-message-bg); }
+input:checked + .slider:before { transform: translateX(20px); }
