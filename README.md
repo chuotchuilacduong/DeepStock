@@ -94,7 +94,7 @@ Give me a buy or sell rating for Zoetis Inc. today.
 
 ### 1. Set Up Credentials
 - Add your `HUGGING_FACE_HUB_TOKEN` and `WANDB_API_KEY` as secrets in your environment.
-- Configure your Modal token.
+- Configure your Modal token!
 
 ### 2. Run the Scripts
 - Execute the data preparation scripts to generate the cache files and the initial dataset on the Hugging Face Hub.
